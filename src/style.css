@@ -1,0 +1,66 @@
+/* Web-optimized scaling - reduce mobile-first sizing */
+:root {
+  font-size: 15px; /* Slightly larger for better readability */
+}
+
+body {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Compact form elements with consistent heights */
+input, select, textarea, button {
+  font-size: 0.9rem;
+  padding: 0.45rem 0.7rem;
+  height: 2.2rem; /* Ensure consistent height */
+  box-sizing: border-box;
+}
+
+/* Make sure select dropdowns match input height */
+select {
+  height: 2.2rem !important;
+  line-height: 1.2;
+}
+
+/* Smaller headings */
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.3rem; }
+h4 { font-size: 1.1rem; }
+
+/* Compact fieldsets and legends */
+fieldset {
+  padding: 0.8rem;
+  margin: 0.8rem 0;
+}
+
+legend {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Tighter grid spacing */
+.grid {
+  gap: 0.8rem;
+}
+
+/* Compact labels */
+label {
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Smaller progress bars */
+progress {
+  height: 1rem;
+}
+
+/* Compact details/summary */
+details {
+  margin: 0.6rem 0;
+}
+
+summary {
+  font-size: 0.95rem;
+  padding: 0.4rem 0;
+}
