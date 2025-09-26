@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { TrainingConfig, StandardTrainingConfig } from '../types'
 import { startMagikTraining, startStandardTraining } from '../services/trainingApi'
 
@@ -10,12 +10,13 @@ const emitting = defineEmits<{
 type TrainingType = "magik" | "std"
 
 const trainingType = ref<TrainingType>("magik")
-const useRoboflow = ref(true)
+const useRoboflow = ref(false)
 const isSubmitting = ref(false)
 const error = ref("")
 
 // DEFAULT VALUES FOR MAGIK CONFIG
 const magikConfig = ref<TrainingConfig>({
+  dataset_source: "file_path",
   roboflow_api_key: import.meta.env.VITE_ROBOFLOW_API_KEY || "",
   roboflow_workspace: "cc-c5pfr",
   roboflow_project: "cc-cam-d-3fmu4",
@@ -33,6 +34,7 @@ const magikConfig = ref<TrainingConfig>({
 
 // DEFAULT VALUES FOR STANDARD CONFIG
 const stdConfig = ref<StandardTrainingConfig>({
+  dataset_source: "file_path",
   roboflow_api_key: import.meta.env.VITE_ROBOFLOW_API_KEY || "",
   roboflow_workspace: "cc-c5pfr",
   roboflow_project: "cc-cam-d-3fmu4",
@@ -50,6 +52,13 @@ const stdConfig = ref<StandardTrainingConfig>({
 const currentConfig = computed(() => 
   trainingType.value === "magik" ? magikConfig.value : stdConfig.value
 )
+
+// Watch useRoboflow checkbox and update dataset_source accordingly
+watch(useRoboflow, (newValue) => {
+  const datasetSource = newValue ? "roboflow" : "file_path"
+  magikConfig.value.dataset_source = datasetSource
+  stdConfig.value.dataset_source = datasetSource
+})
 
 async function submitTraining() {
   try {

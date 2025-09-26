@@ -1,8 +1,13 @@
 <script lang="ts" setup>
 import type { TrainingTask } from '../types'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { deleteTask } from '../services/trainingApi'
 
 const props = defineProps<{ tasks: TrainingTask[] }>()
+
+const emit = defineEmits<{
+  taskDeleted: []
+}>()
 
 const sorted = computed(() =>
   [...props.tasks].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
@@ -22,6 +27,38 @@ const joinUrl = (base: string, path: string) => {
   const b = (base || '').replace(/\/+$/, '')
   const p = (path || '').replace(/^\/+/, '')
   return `${b}/${p}`
+}
+
+// Delete task functionality
+const deletingTasks = ref<Set<string>>(new Set())
+
+const getButtonText = (status: string): string => {
+  switch (status) {
+    case 'pending': return 'Cancel'
+    case 'running': return 'Cancel'
+    case 'completed': return 'Delete'
+    case 'failed': return 'Delete'
+    default: return 'Delete'
+  }
+}
+
+const isButtonDisabled = (status: string): boolean => {
+  return status === 'running'
+}
+
+const handleDeleteTask = async (taskId: string) => {
+  if (deletingTasks.value.has(taskId)) return
+  
+  try {
+    deletingTasks.value.add(taskId)
+    await deleteTask(taskId)
+    emit('taskDeleted')
+  } catch (error) {
+    console.error('Failed to delete task:', error)
+    // You could add error handling here
+  } finally {
+    deletingTasks.value.delete(taskId)
+  }
 }
 
 // Collect artifact entries from both output_files map and top-level fields
@@ -55,8 +92,22 @@ const fileUrl = (path: string) => {
   <section>
     <article v-for="t in sorted" :key="t.task_id" class="task-card">
       <header class="task-header">
-        <h4>{{ t.task_id }} (type: {{ t.type }})</h4>
-        <span class="badge" :class="t.status">{{ t.status }}</span>
+        <div class="task-info">
+          <h4>{{ t.task_id }} (type: {{ t.type }})</h4>
+          <span class="badge" :class="t.status">{{ t.status }}</span>
+        </div>
+        <button 
+          @click="handleDeleteTask(t.task_id)"
+          :disabled="isButtonDisabled(t.status) || deletingTasks.has(t.task_id)"
+          :aria-busy="deletingTasks.has(t.task_id)"
+          class="outline delete-btn"
+          :class="{ 
+            'cancel-btn': t.status === 'pending' || t.status === 'running',
+            'delete-btn-completed': t.status === 'completed' || t.status === 'failed'
+          }"
+        >
+          {{ deletingTasks.has(t.task_id) ? 'Processing...' : getButtonText(t.status) }}
+        </button>
       </header>
 
       <div class="progress" v-if="t.status === 'running' && t.progress">
@@ -77,7 +128,8 @@ const fileUrl = (path: string) => {
           <li>Completed: {{ fmt(t.completed_at) }}</li>
           <li>Classes: {{ t.config?.num_classes }}</li>
           <li>Batch: {{ t.config?.batch_size }}</li>
-          <li>Epochs: {{ t.config?.epochs_32bit }}/{{ t.config?.epochs_8bit }}/{{ t.config?.epochs_4bit }}</li>
+          <li v-if="t.type === 'magik'">Epochs: {{ t.config?.epochs_32bit }}/{{ t.config?.epochs_8bit }}/{{ t.config?.epochs_4bit }}</li>
+          <li v-if="t.type === 'std'">Epochs: {{ t.config?.epochs }}</li>
         </ul>
 
         <div v-if="t.progress?.errors?.length">
@@ -120,9 +172,50 @@ const fileUrl = (path: string) => {
   align-items: center; 
   margin-bottom: 0.4rem;
 }
+.task-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .task-header h4 {
   margin: 0;
   font-size: 1rem;
+}
+.delete-btn {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid;
+}
+/* Cancel button (pending/running) - Orange */
+.cancel-btn {
+  color: #ea580c;
+  border-color: #ea580c;
+  background: transparent;
+}
+.cancel-btn:hover:not(:disabled) {
+  background: #ea580c;
+  color: white;
+}
+/* Delete button (completed/failed) - Red */
+.delete-btn-completed {
+  color: #dc2626;
+  border-color: #dc2626;
+  background: transparent;
+}
+.delete-btn-completed:hover:not(:disabled) {
+  background: #dc2626;
+  color: white;
+}
+/* Disabled state */
+.delete-btn:disabled {
+  color: #9ca3af;
+  border-color: #9ca3af;
+  background: transparent;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 .progress-text { 
   font-size: 0.85rem; 

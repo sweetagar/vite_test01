@@ -107,7 +107,7 @@ function setFilter(value: TaskFilter) {
       <header>
         <h3>Recent Training Tasks</h3>
       </header>
-      <TrainingList :tasks="trainingTasks" />
+      <TrainingList :tasks="trainingTasks" @task-deleted="refreshTasks" />
       <div class="actions">
         <button class="outline" @click="refreshTasks">Refresh Tasks</button>
       </div>

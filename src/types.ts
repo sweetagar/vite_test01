@@ -16,6 +16,7 @@ export type TrainingStatus = "pending" | "running" | "completed" | "failed"
 // Magik Training Config (ARM Cortex MCU)
 export interface TrainingConfig {
   task_id?: string;
+  dataset_source?: string;
   dataset_path?: string;
   num_classes: number;
   batch_size: number;
@@ -37,6 +38,7 @@ export interface TrainingConfig {
 // Standard Training Config (Computer)
 export interface StandardTrainingConfig {
   task_id?: string;
+  dataset_source?: string;
   dataset_path?: string;
   num_classes: number;
   batch_size: number;

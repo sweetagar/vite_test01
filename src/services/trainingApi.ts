@@ -61,6 +61,8 @@ export async function getTaskProgress(taskId: string): Promise<TrainingTask> {
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
-  const res = await fetch(`${TRAINING_SERVER}/api/tasks/${taskId}`, { method: "DELETE" })
-  await handleResponse(res)
+  const res = await fetch(`${TRAINING_SERVER}/api/tasks/${taskId}`, {
+    method: "DELETE"
+  })
+  return handleResponse<void>(res)
 }
